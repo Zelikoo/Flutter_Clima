@@ -22,23 +22,24 @@ class LoadingScreenState extends State<LoadingScreen> {
     final LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.low,
     );
-    Position position = await Geolocator.getCurrentPosition(
-      locationSettings: locationSettings,
-    );
-    print("📍 Position: ${position.latitude}, ${position.longitude}");
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        locationSettings: locationSettings,
+      );
+      print("📍 Position: ${position.latitude}, ${position.longitude}");
+    } catch (e) {
+      print("⚠️ Erreur lors de la récupération de la position: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getLocation();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            getLocation();
-          },
-          child: Text('Get Location'),
-        ),
-      ),
-    );
+    return Scaffold();
   }
 }
