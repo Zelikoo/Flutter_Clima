@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:clima/services/location.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -9,37 +11,47 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class LoadingScreenState extends State<LoadingScreen> {
-  void getLocation() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      print("⚠️ Permission non accordée. Demande en cours...");
-      await Geolocator.requestPermission();
-      return;
-    }
-
-    final LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.low,
-    );
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-        locationSettings: locationSettings,
-      );
-      print("📍 Position: ${position.latitude}, ${position.longitude}");
-    } catch (e) {
-      print("⚠️ Erreur lors de la récupération de la position: $e");
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     getLocation();
   }
 
+  void getLocation() async {
+    Location location = Location();
+    await location.getCurrentLocation();
+    print(location.latitude);
+    print(location.longitude);
+  }
+
+  void getData() async {
+    http.Response response = await http.get(
+      Uri.parse(
+        "https://api.openweathermap.org/data/2.5/weather?lat=44.34&lon=10.99&appid=0bfcebfca20798ad3ab1bfb275ed1774",
+      ),
+    );
+    if (response.statusCode == 200) {
+      String data = response.body;
+
+      var decodedData = jsonDecode(data);
+
+      double temperature = decodedData['main']['temp'];
+      int condition = decodedData['weather'][0]['id'];
+      String cityName = decodedData['name'];
+
+      print(temperature);
+      print(condition);
+      print(cityName);
+    } else {
+      print(
+        "⚠️ Erreur lors de la récupération des données: ${response.statusCode}",
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    getData();
     return Scaffold();
   }
 }
